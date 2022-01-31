@@ -1,14 +1,13 @@
 package com.amirhusseinsoori.shared_resource.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.amirhusseinsoori.shared_resource.ui.state.Atomic
+import com.amirhusseinsoori.shared_resource.ui.state.SemaphoreState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Semaphore
 
 
@@ -18,28 +17,32 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedResourceViewModel @Inject constructor() : ViewModel() {
 
-    private val mutableStateFlow = MutableStateFlow<Atomic>(Atomic())
-    val stateFlow = mutableStateFlow.asStateFlow()
+    private val _stateAtomic = MutableStateFlow<Atomic>(Atomic())
+    val stateAtomic = _stateAtomic.asStateFlow()
+    private val _stateSemaphore = MutableStateFlow<SemaphoreState>(SemaphoreState())
+    val stateSemaphore = _stateSemaphore.asStateFlow()
 
     init {
         atomic()
+        semaphore(1)
     }
 
 
+    fun eventSynchronize() {
+
+    }
 
 
     private fun atomic(data: AtomicInteger = AtomicInteger(0)) {
         viewModelScope.launch {
-          async {
+            async {
                 for (i in 0..10) {
                     data.set(i)
                     delay(500)
                     if (i != 10) {
-                        mutableStateFlow.value =
-                            mutableStateFlow.value.copy(increment = data.toInt())
+                        _stateAtomic.value =
+                            _stateAtomic.value.copy(increment = data.toInt())
                     }
-
-
                 }
             }
             async {
@@ -47,8 +50,8 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
                     data.set(i)
                     delay(500)
                     if (i != 0) {
-                        mutableStateFlow.value =
-                            mutableStateFlow.value.copy(decrement = data.toInt())
+                        _stateAtomic.value =
+                            _stateAtomic.value.copy(decrement = data.toInt())
 
                     }
                 }
@@ -59,7 +62,42 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
 
     }
 
-    data class Atomic(var increment: Int = 0, val decrement: Int = 10)
+
+    private fun semaphore(permit: Int) {
+        val semaphore = Semaphore(permit)
+        viewModelScope.launch {
+            async {
+                semaphore.acquire()
+                delay(2000)
+                _stateSemaphore.value = _stateSemaphore.value.copy(permit1 = true)
+                semaphore.release()
+
+            }
+
+            async {
+                semaphore.acquire()
+                delay(2000)
+                _stateSemaphore.value = _stateSemaphore.value.copy(permit2 = true)
+                semaphore.release()
+            }
+            async {
+                semaphore.acquire()
+                delay(2000)
+                _stateSemaphore.value = _stateSemaphore.value.copy(permit3 = true)
+                semaphore.release()
+
+            }
+            async {
+                semaphore.acquire()
+                delay(2000)
+                _stateSemaphore.value = _stateSemaphore.value.copy(permit4 = true)
+                semaphore.release()
+
+            }
+        }
+
+
+    }
 
 
 }

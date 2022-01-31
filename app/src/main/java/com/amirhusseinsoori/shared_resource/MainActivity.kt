@@ -6,10 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.amirhusseinsoori.shared_resource.ui.SharedResourceViewModel
 import com.amirhusseinsoori.shared_resource.ui.theme.Shared_resourceTheme
@@ -24,9 +21,16 @@ class MainActivity : ComponentActivity() {
 
             Shared_resourceTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                   val data= viewModel.stateFlow.collectAsState()
+                   val data= viewModel.stateAtomic.collectAsState()
                     data.let {
-                        Log.e("Tag", "onCreate:  increment : ${ it.value.increment}   increment : ${ it.value.decrement}  ", )
+//                        Log.e("Tag", "onCreate:  increment : ${ it.value.increment}   increment : ${ it.value.decrement}  ", )
+
+                    }
+
+
+                    val data2= viewModel.stateSemaphore.collectAsState()
+                    data2.let {
+                        Log.e("Tag", "onCreate:  permit1 : ${ it.value.permit1}   permit2 : ${ it.value.permit2}  permit3 : ${ it.value.permit3}   permit4 : ${ it.value.permit4}  ", )
 
                     }
                 }
