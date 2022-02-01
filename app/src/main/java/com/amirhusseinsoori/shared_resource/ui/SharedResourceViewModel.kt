@@ -2,6 +2,7 @@ package com.amirhusseinsoori.shared_resource.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.amirhusseinsoori.shared_resource.ui.event.SynchronizeEvent
 import com.amirhusseinsoori.shared_resource.ui.state.Atomic
 import com.amirhusseinsoori.shared_resource.ui.state.SemaphoreState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,12 +24,21 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
     val stateSemaphore = _stateSemaphore.asStateFlow()
 
     init {
-        atomic()
-        semaphore(1)
+        eventSynchronize(SynchronizeEvent.AtomicEvent)
+        eventSynchronize(SynchronizeEvent.SemaphoreEvent(4))
+
     }
 
 
-    fun eventSynchronize() {
+    private fun eventSynchronize(event: SynchronizeEvent) {
+        when(event){
+            is SynchronizeEvent.SemaphoreEvent ->{
+                semaphore(event.permit)
+            }
+            is SynchronizeEvent.AtomicEvent ->{
+                atomic()
+            }
+        }
 
     }
 
