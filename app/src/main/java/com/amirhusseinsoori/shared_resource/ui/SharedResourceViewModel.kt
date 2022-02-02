@@ -7,10 +7,12 @@ import com.amirhusseinsoori.shared_resource.ui.event.SynchronizeEvent
 import com.amirhusseinsoori.shared_resource.ui.state.AtomicState
 import com.amirhusseinsoori.shared_resource.ui.state.MutexState
 import com.amirhusseinsoori.shared_resource.ui.state.SemaphoreState
+import com.amirhusseinsoori.shared_resource.ui.state.SharedResourceResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -23,18 +25,24 @@ import javax.inject.Inject
 class SharedResourceViewModel @Inject constructor() : ViewModel() {
     var mutex: Mutex = Mutex(true)
     private val _stateAtomic = MutableStateFlow<AtomicState>(AtomicState())
-    val stateAtomic = _stateAtomic.asStateFlow()
-
     private val _stateMutex = MutableStateFlow<MutexState>(MutexState())
-    val stateMutex = _stateMutex.asStateFlow()
-
     private val _stateSemaphore = MutableStateFlow<SemaphoreState>(SemaphoreState())
-    val stateSemaphore = _stateSemaphore.asStateFlow()
+    private val state = MutableStateFlow<SharedResourceResultState>(SharedResourceResultState())
+    val _state=state.asStateFlow()
+
 
     init {
 //        eventSynchronize(SynchronizeEvent.AtomicEvent)
         //     eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
         eventSynchronize(SynchronizeEvent.MutexEvent)
+
+        viewModelScope.launch {
+            combine(_stateAtomic, _stateMutex, _stateSemaphore) { atomic, mutex, semaphore ->
+                SharedResourceResultState(mutex, semaphore, atomic)
+            }.collect {
+                state.value=it
+            }
+        }
     }
 
 
@@ -88,7 +96,7 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private  fun mutex() {
+    private fun mutex() {
         viewModelScope.launch {
             launch {
                 _stateMutex.value = _stateMutex.value.copy(block1 = true)

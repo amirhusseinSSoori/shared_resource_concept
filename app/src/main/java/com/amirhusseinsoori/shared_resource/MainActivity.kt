@@ -21,25 +21,28 @@ class MainActivity : ComponentActivity() {
 
             Shared_resourceTheme {
                 Surface(color = MaterialTheme.colors.background) {
-                   val data= viewModel.stateAtomic.collectAsState()
+                   val data= viewModel._state.collectAsState()
                     data.let {
-                   // Log.e("Tag", "onCreate:  increment : ${ it.value.increment}   increment : ${ it.value.decrement}  ", )
+
+                        it.value.mutex.let {
+                          Log.e("Tag", "onCreate:  block1 : ${ it.block1}   block2 : ${ it.block2}  block3 : ${ it.block3}  block4 : ${ it.block4}  ", )
+                        }
+
+
+                        it.value.semaphore.let {
+                          // Log.e("Tag", "onCreate:  permit1 : ${ it.permit1}   permit2 : ${ it.permit2}  permit3 : ${ it.permit3}  permit4 : ${ it.permit4}  ", )
+                        }
+
+
+                        it.value.atomicState.let {
+                           //Log.e("Tag", "onCreate:  increment : ${ it.increment}   decrement : ${ it.decrement} ", )
+                        }
+
+
 
                     }
 
 
-                    val data2= viewModel.stateSemaphore.collectAsState()
-                    data2.let {
-               //  Log.e("Tag", "onCreate:  permit1 : ${ it.value.permit1}   permit2 : ${ it.value.permit2}  permit3 : ${ it.value.permit3}   permit4 : ${ it.value.permit4}  ", )
-
-                    }
-
-
-                    val data3= viewModel.stateMutex.collectAsState()
-                    data3.let {
-                      Log.e("Tag", "onCreate:  block1 : ${ it.value.block1}   block2 : ${ it.value.block2}  block3 : ${ it.value.block3}   block4 : ${ it.value.block4}  ", )
-
-                    }
                 }
             }
         }
