@@ -1,15 +1,19 @@
 package com.amirhusseinsoori.shared_resource.ui
 
+import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amirhusseinsoori.shared_resource.ui.event.SynchronizeEvent
-import com.amirhusseinsoori.shared_resource.ui.state.Atomic
+import com.amirhusseinsoori.shared_resource.ui.state.AtomicState
+import com.amirhusseinsoori.shared_resource.ui.state.MutexState
 import com.amirhusseinsoori.shared_resource.ui.state.SemaphoreState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -17,26 +21,39 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SharedResourceViewModel @Inject constructor() : ViewModel() {
-
-    private val _stateAtomic = MutableStateFlow<Atomic>(Atomic())
+    var mutex: Mutex = Mutex(true)
+    private val _stateAtomic = MutableStateFlow<AtomicState>(AtomicState())
     val stateAtomic = _stateAtomic.asStateFlow()
+
+    private val _stateMutex = MutableStateFlow<MutexState>(MutexState())
+    val stateMutex = _stateMutex.asStateFlow()
+
     private val _stateSemaphore = MutableStateFlow<SemaphoreState>(SemaphoreState())
     val stateSemaphore = _stateSemaphore.asStateFlow()
 
     init {
-        eventSynchronize(SynchronizeEvent.AtomicEvent)
-        eventSynchronize(SynchronizeEvent.SemaphoreEvent(4))
-
+//        eventSynchronize(SynchronizeEvent.AtomicEvent)
+        //     eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
+        eventSynchronize(SynchronizeEvent.MutexEvent)
     }
 
 
     private fun eventSynchronize(event: SynchronizeEvent) {
-        when(event){
-            is SynchronizeEvent.SemaphoreEvent ->{
+        when (event) {
+            is SynchronizeEvent.SemaphoreEvent -> {
                 semaphore(event.permit)
             }
-            is SynchronizeEvent.AtomicEvent ->{
+            is SynchronizeEvent.AtomicEvent -> {
                 atomic()
+            }
+            is SynchronizeEvent.MutexEvent -> {
+                viewModelScope.launch {
+                    mutex()
+                    delay(2000)
+                    mutex.unlock()
+                }
+
+
             }
         }
 
@@ -45,7 +62,7 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
 
     private fun atomic(data: AtomicInteger = AtomicInteger(0)) {
         viewModelScope.launch {
-            async {
+            launch {
                 for (i in 0..10) {
                     data.set(i)
                     delay(500)
@@ -55,7 +72,7 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
                     }
                 }
             }
-            async {
+            launch {
                 for (i in 10 downTo 0) {
                     data.set(i)
                     delay(500)
@@ -69,35 +86,54 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
 
 
         }
+    }
 
+    private  fun mutex() {
+        viewModelScope.launch {
+            launch {
+                _stateMutex.value = _stateMutex.value.copy(block1 = true)
+            }
+            launch {
+                mutex.withLock {
+                    _stateMutex.value = _stateMutex.value.copy(block2 = true)
+                }
+            }
+            launch {
+                _stateMutex.value = _stateMutex.value.copy(block3 = true)
+            }
+            launch {
+                mutex.withLock {
+                    _stateMutex.value = _stateMutex.value.copy(block4 = true)
+                }
+            }
+        }
     }
 
 
     private fun semaphore(permit: Int) {
         val semaphore = Semaphore(permit)
         viewModelScope.launch {
-            async {
+            launch {
                 semaphore.acquire()
                 delay(2000)
                 _stateSemaphore.value = _stateSemaphore.value.copy(permit1 = true)
                 semaphore.release()
 
             }
-
-            async {
+            launch {
                 semaphore.acquire()
                 delay(2000)
                 _stateSemaphore.value = _stateSemaphore.value.copy(permit2 = true)
                 semaphore.release()
             }
-            async {
+            launch {
                 semaphore.acquire()
                 delay(2000)
                 _stateSemaphore.value = _stateSemaphore.value.copy(permit3 = true)
                 semaphore.release()
 
             }
-            async {
+            launch {
                 semaphore.acquire()
                 delay(2000)
                 _stateSemaphore.value = _stateSemaphore.value.copy(permit4 = true)
@@ -111,3 +147,4 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
 
 
 }
+
