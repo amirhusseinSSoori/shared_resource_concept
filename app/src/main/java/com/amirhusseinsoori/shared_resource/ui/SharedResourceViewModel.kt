@@ -1,6 +1,5 @@
 package com.amirhusseinsoori.shared_resource.ui
 
-import androidx.compose.animation.defaultDecayAnimationSpec
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amirhusseinsoori.shared_resource.ui.event.SynchronizeEvent
@@ -24,23 +23,23 @@ import javax.inject.Inject
 @HiltViewModel
 class SharedResourceViewModel @Inject constructor() : ViewModel() {
     var mutex: Mutex = Mutex(true)
-    private val _stateAtomic = MutableStateFlow<AtomicState>(AtomicState())
-    private val _stateMutex = MutableStateFlow<MutexState>(MutexState())
-    private val _stateSemaphore = MutableStateFlow<SemaphoreState>(SemaphoreState())
-    private val state = MutableStateFlow<SharedResourceResultState>(SharedResourceResultState())
-    val _state=state.asStateFlow()
+    private val _atomicState = MutableStateFlow<AtomicState>(AtomicState())
+    private val _mutexState = MutableStateFlow<MutexState>(MutexState())
+    private val _semaphoreState = MutableStateFlow<SemaphoreState>(SemaphoreState())
+    private val _resultState = MutableStateFlow<SharedResourceResultState>(SharedResourceResultState())
+    val resultState = _resultState.asStateFlow()
 
 
     init {
-//        eventSynchronize(SynchronizeEvent.AtomicEvent)
-        //     eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
-        eventSynchronize(SynchronizeEvent.MutexEvent)
+        // eventSynchronize(SynchronizeEvent.AtomicEvent)
+            eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
+      //  eventSynchronize(SynchronizeEvent.AtomicEvent)
 
         viewModelScope.launch {
-            combine(_stateAtomic, _stateMutex, _stateSemaphore) { atomic, mutex, semaphore ->
+            combine(_atomicState, _mutexState, _semaphoreState) { atomic, mutex, semaphore ->
                 SharedResourceResultState(mutex, semaphore, atomic)
             }.collect {
-                state.value=it
+                _resultState.value = it
             }
         }
     }
@@ -75,8 +74,8 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
                     data.set(i)
                     delay(500)
                     if (i != 10) {
-                        _stateAtomic.value =
-                            _stateAtomic.value.copy(increment = data.toInt())
+                        _atomicState.value =
+                            _atomicState.value.copy(increment = data.toInt())
                     }
                 }
             }
@@ -85,8 +84,8 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
                     data.set(i)
                     delay(500)
                     if (i != 0) {
-                        _stateAtomic.value =
-                            _stateAtomic.value.copy(decrement = data.toInt())
+                        _atomicState.value =
+                            _atomicState.value.copy(decrement = data.toInt())
 
                     }
                 }
@@ -99,19 +98,19 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
     private fun mutex() {
         viewModelScope.launch {
             launch {
-                _stateMutex.value = _stateMutex.value.copy(block1 = true)
+                _mutexState.value = _mutexState.value.copy(block1 = true)
             }
             launch {
                 mutex.withLock {
-                    _stateMutex.value = _stateMutex.value.copy(block2 = true)
+                    _mutexState.value = _mutexState.value.copy(block2 = true)
                 }
             }
             launch {
-                _stateMutex.value = _stateMutex.value.copy(block3 = true)
+                _mutexState.value = _mutexState.value.copy(block3 = true)
             }
             launch {
                 mutex.withLock {
-                    _stateMutex.value = _stateMutex.value.copy(block4 = true)
+                    _mutexState.value = _mutexState.value.copy(block4 = true)
                 }
             }
         }
@@ -124,27 +123,27 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
             launch {
                 semaphore.acquire()
                 delay(2000)
-                _stateSemaphore.value = _stateSemaphore.value.copy(permit1 = true)
+                _semaphoreState.value = _semaphoreState.value.copy(permit1 = true)
                 semaphore.release()
 
             }
             launch {
                 semaphore.acquire()
                 delay(2000)
-                _stateSemaphore.value = _stateSemaphore.value.copy(permit2 = true)
+                _semaphoreState.value = _semaphoreState.value.copy(permit2 = true)
                 semaphore.release()
             }
             launch {
                 semaphore.acquire()
                 delay(2000)
-                _stateSemaphore.value = _stateSemaphore.value.copy(permit3 = true)
+                _semaphoreState.value = _semaphoreState.value.copy(permit3 = true)
                 semaphore.release()
 
             }
             launch {
                 semaphore.acquire()
                 delay(2000)
-                _stateSemaphore.value = _stateSemaphore.value.copy(permit4 = true)
+                _semaphoreState.value = _semaphoreState.value.copy(permit4 = true)
                 semaphore.release()
 
             }
