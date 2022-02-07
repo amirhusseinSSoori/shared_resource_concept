@@ -50,7 +50,6 @@ fun MotionLayoutDemo() {
 @Composable
 private fun ColorMotion() {
     var animateImage by rememberSaveable { mutableStateOf(false) }
-    var colorSurface by remember { mutableStateOf(Color.White) }
     val coroutineScope = rememberCoroutineScope()
     val imageAnimationProgress by animateFloatAsState(
         targetValue = if (animateImage) 1f else 0f,
@@ -82,8 +81,6 @@ private fun ColorMotion() {
                   height: 50,
                   end: ['parent', 'start', 200],
                   bottom: ['parent', 'top', 0],
-                  
-   
                 },
                 mutex: { 
                   width: 50,
@@ -97,7 +94,6 @@ private fun ColorMotion() {
                   start: ['parent', 'end', 200],
                   bottom: ['parent', 'top', 0]
                 },
-
                 paintFab: {
                 width: 50,
                 height: 50,
@@ -134,7 +130,7 @@ private fun ColorMotion() {
                   start: ['paintFab', 'end', 40],
                   bottom: ['paintFab', 'bottom', 0]
                 },
-paintFab: {
+                paintFab: {
                 width: 50,
                 height: 50,
                top: ['parent', 'top'],
@@ -150,20 +146,10 @@ paintFab: {
 
             ) {
 
-                ItemAycn(InputData.Atomic.data) {
-                    animateImage = !animateImage
-                    colorSurface = Green50
-
-                }
-                ItemAycn(InputData.Semaphore.data) {
-
-                }
-                ItemAycn(InputData.Mutex.data) {
-
-                }
-                ItemAycn(InputData.Lock.data) {
-
-                }
+                ItemAycn(InputData.Atomic.data)
+                ItemAycn(InputData.Semaphore.data)
+                ItemAycn(InputData.Mutex.data)
+                ItemAycn(InputData.Lock.data)
                 FloatingActionButton(
                     onClick = {
                         animateImage = !animateImage
@@ -184,15 +170,13 @@ paintFab: {
 }
 
 @Composable
-fun ItemAycn(data: SharedResourceItem, setAnime: () -> Unit) {
-    Canvas(modifier = Modifier
-        .width(100.dp)
-        .height(100.dp)
-        .layoutId(data.id)
-
-        .clickable {
-            setAnime()
-        }) {
+fun ItemAycn(data: SharedResourceItem) {
+    Canvas(
+        modifier = Modifier
+            .width(100.dp)
+            .height(100.dp)
+            .layoutId(data.id)
+    ) {
 
 
         drawCircle(
