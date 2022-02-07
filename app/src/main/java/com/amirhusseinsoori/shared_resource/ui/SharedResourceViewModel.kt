@@ -12,6 +12,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
@@ -65,6 +66,9 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
         }
 
     }
+
+
+
 
 
     private fun atomic(data: AtomicInteger = AtomicInteger(0)) {
