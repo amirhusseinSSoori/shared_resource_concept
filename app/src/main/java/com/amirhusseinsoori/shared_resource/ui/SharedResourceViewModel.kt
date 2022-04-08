@@ -9,6 +9,7 @@ import com.amirhusseinsoori.shared_resource.ui.state.SemaphoreState
 import com.amirhusseinsoori.shared_resource.ui.state.SharedResourceResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -27,19 +28,23 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
     private val _atomicState = MutableStateFlow<AtomicState>(AtomicState())
     private val _mutexState = MutableStateFlow<MutexState>(MutexState())
     private val _semaphoreState = MutableStateFlow<SemaphoreState>(SemaphoreState())
-    private val _resultState = MutableStateFlow<SharedResourceResultState>(SharedResourceResultState())
+    private val _resultState =
+        MutableStateFlow<SharedResourceResultState>(SharedResourceResultState())
     val resultState = _resultState.asStateFlow()
 
 
     init {
         // eventSynchronize(SynchronizeEvent.AtomicEvent)
-            eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
-      //  eventSynchronize(SynchronizeEvent.AtomicEvent)
+        eventSynchronize(SynchronizeEvent.SemaphoreEvent(3))
+        //  eventSynchronize(SynchronizeEvent.AtomicEvent)
+
 
         viewModelScope.launch {
+
             combine(_atomicState, _mutexState, _semaphoreState) { atomic, mutex, semaphore ->
                 SharedResourceResultState(mutex, semaphore, atomic)
             }.collect {
+
                 _resultState.value = it
             }
         }
@@ -49,6 +54,7 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
     private fun eventSynchronize(event: SynchronizeEvent) {
         when (event) {
             is SynchronizeEvent.SemaphoreEvent -> {
+
                 semaphore(event.permit)
             }
             is SynchronizeEvent.AtomicEvent -> {
@@ -66,9 +72,6 @@ class SharedResourceViewModel @Inject constructor() : ViewModel() {
         }
 
     }
-
-
-
 
 
     private fun atomic(data: AtomicInteger = AtomicInteger(0)) {

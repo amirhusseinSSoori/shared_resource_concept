@@ -19,12 +19,12 @@ fun AtomicScreen(viewModel: SharedResourceViewModel){
 
 
             it.value.semaphore.let {
-                Log.e("Tag", "onCreate:  permit1 : ${ it.permit1}   permit2 : ${ it.permit2}  permit3 : ${ it.permit3}  permit4 : ${ it.permit4}  ", )
+             //   Log.e("Tag", "onCreate:  permit1 : ${ it.permit1}   permit2 : ${ it.permit2}  permit3 : ${ it.permit3}  permit4 : ${ it.permit4}  ", )
             }
 
 
             it.value.atomicState.let {
-                // Log.e("Tag", "onCreate:  increment : ${ it.increment}   decrement : ${ it.decrement} ", )
+                 Log.e("Tag", "onCreate:  increment : ${ it.increment}   decrement : ${ it.decrement} ", )
             }
 
 

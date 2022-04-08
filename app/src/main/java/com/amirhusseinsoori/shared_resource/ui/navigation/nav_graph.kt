@@ -7,16 +7,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.amirhusseinsoori.shared_resource.ui.SharedResourceViewModel
 import com.amirhusseinsoori.shared_resource.ui.screen.AtomicScreen
-import com.amirhusseinsoori.shared_resource.ui.screen.MotionLayoutDemo
+import com.amirhusseinsoori.shared_resource.ui.screen.IntroScreen
+import com.amirhusseinsoori.shared_resource.ui.util.InputData
 
 
 @ExperimentalMotionApi
 @Composable
 fun InitialNavigation(viewModel: SharedResourceViewModel) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "atomic") {
-        composable("atomic") { MotionLayoutDemo() }
-
+    NavHost(navController = navController, startDestination = "intro") {
+        composable("intro") { IntroScreen(navController) }
+        composable("atomic") { AtomicScreen(viewModel) }
 
     }
 }

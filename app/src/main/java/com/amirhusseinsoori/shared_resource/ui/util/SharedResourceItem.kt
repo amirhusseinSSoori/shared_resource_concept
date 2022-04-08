@@ -9,7 +9,8 @@ data class SharedResourceItem(
 
 sealed class InputData(var data:SharedResourceItem){
     object Atomic:InputData(SharedResourceItem(Color.Black,"atomic","Atomic"))
-    object Semaphore:InputData(SharedResourceItem(Color.Black,"semaphore","Semaphore"))
-    object Mutex:InputData(SharedResourceItem(Color.Black,"mutex","Mutex"))
-    object Lock:InputData(SharedResourceItem(Color.Black,"lock","Lock"))
+    object Semaphore:InputData(SharedResourceItem(Color.Gray,"semaphore","Semaphore"))
+    object Mutex:InputData(SharedResourceItem(Color.Blue,"mutex","Mutex"))
+    object Lock:InputData(SharedResourceItem(Color.Magenta,"lock","channel"))
+    object Main:InputData(SharedResourceItem(Color.Transparent,"paintFab",""))
 }
